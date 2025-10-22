@@ -36,6 +36,10 @@ export async function POST(req: NextRequest) {
       quality: 'standard'
     });
 
+    if (!image.data || image.data.length === 0) {
+      throw new Error('No image data returned from OpenAI');
+    }
+
     return NextResponse.json({
       imageUrl: image.data[0].url,
       revisedPrompt: image.data[0].revised_prompt

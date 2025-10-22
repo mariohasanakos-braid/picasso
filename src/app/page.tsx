@@ -101,7 +101,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [messages, isGenerating, compiledPrompt, imageUrl]);
+  }, [messages, isGenerating, compiledPrompt]);
 
   // Start voice connection when user clicks start
   useEffect(() => {

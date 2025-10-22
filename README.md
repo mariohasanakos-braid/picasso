@@ -1,6 +1,6 @@
 # Picasso - AI Image Generation with Voice
 
-Create stunning AI-generated images through natural voice conversations.
+Create stunning AI-generated images through natural voice conversations. Simply talk to Picasso and bring your creative vision to life!
 
 ## Features
 

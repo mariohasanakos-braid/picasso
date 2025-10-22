@@ -64,6 +64,18 @@ export async function POST(req: NextRequest) {
     }
     
     if (error.status === 400) {
+      // Check if it's a content policy violation
+      if (error.code === 'content_policy_violation' || 
+          (error.message && error.message.includes('content_policy'))) {
+        return NextResponse.json(
+          { 
+            error: 'Content policy violation', 
+            details: 'The image prompt contains content that violates OpenAI\'s usage policies. Please try rephrasing your request to be more appropriate.' 
+          },
+          { status: 400 }
+        );
+      }
+      
       return NextResponse.json(
         { error: 'Invalid request', details: error.message || 'The prompt may be too long or contain invalid content' },
         { status: 400 }

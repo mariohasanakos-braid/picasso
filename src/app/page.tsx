@@ -84,8 +84,18 @@ export default function Home() {
         throw new Error(errorData.error || 'Failed to generate image');
       }
 
-      const { imageUrl: newImageUrl } = await imageRes.json();
-      setImageUrl(newImageUrl);
+      const imageData = await imageRes.json();
+      
+      if (imageData.error) {
+        // Handle specific error from our API
+        if (imageData.error === 'Content policy violation') {
+          setError('Your request was flagged by content safety filters. Please try describing your image differently, focusing on artistic and appropriate content.');
+        } else {
+          setError(imageData.details || imageData.error || 'Failed to generate image');
+        }
+      } else {
+        setImageUrl(imageData.imageUrl);
+      }
     } catch (err: any) {
       console.error('Generation error:', err);
       const errorMessage = err.message || 'Failed to generate image';

@@ -101,7 +101,7 @@ export default function Home() {
     } finally {
       setIsGenerating(false);
     }
-  }, [messages, isGenerating]);
+  }, [messages, isGenerating, compiledPrompt, imageUrl]);
 
   // Start voice connection when user clicks start
   useEffect(() => {
@@ -222,7 +222,7 @@ export default function Home() {
                   </h3>
                   <p className="text-secondary max-w-md">
                     Click the button below to start a voice conversation with Picasso.
-                    You'll be asked to grant microphone permission.
+                    You&apos;ll be asked to grant microphone permission.
                   </p>
                 </div>
                 <button

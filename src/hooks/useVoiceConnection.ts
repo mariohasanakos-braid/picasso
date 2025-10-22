@@ -36,6 +36,74 @@ export function useVoiceConnection() {
     updateLevel();
   }, []);
 
+  const stopConnection = useCallback(() => {
+    console.log('Stopping voice connection...');
+    
+    // Set cleanup flag first to prevent any new audio or messages
+    isCleanedUpRef.current = true;
+    
+    // Cancel audio level monitoring
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    // Stop and remove all audio elements
+    audioElementsRef.current.forEach(audio => {
+      audio.pause();
+      audio.srcObject = null;
+      audio.remove();
+    });
+    audioElementsRef.current = [];
+    
+    // Close data channel
+    if (dcRef.current) {
+      dcRef.current.onmessage = null;
+      dcRef.current.onopen = null;
+      dcRef.current.onerror = null;
+      dcRef.current.close();
+      dcRef.current = null;
+    }
+    
+    // Close peer connection
+    if (pcRef.current) {
+      pcRef.current.ontrack = null;
+      pcRef.current.onicecandidate = null;
+      pcRef.current.oniceconnectionstatechange = null;
+      pcRef.current.onsignalingstatechange = null;
+      
+      // Stop all transceivers
+      pcRef.current.getTransceivers().forEach(transceiver => {
+        if (transceiver.stop) {
+          transceiver.stop();
+        }
+      });
+      
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+    
+    // Stop microphone stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+    
+    // Close audio context
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    
+    isConnectingRef.current = false;
+    setConnectionStatus('disconnected');
+    setAudioLevel(0);
+    
+    console.log('Voice connection stopped');
+  }, []);
+
   const startConnection = useCallback(async (
     onTranscript: (message: TranscriptMessage) => void,
     onGenerationTrigger: () => void
@@ -174,75 +242,7 @@ export function useVoiceConnection() {
       stopConnection();
       return false;
     }
-  }, [monitorAudioLevel]);
-
-  const stopConnection = useCallback(() => {
-    console.log('Stopping voice connection...');
-    
-    // Set cleanup flag first to prevent any new audio or messages
-    isCleanedUpRef.current = true;
-    
-    // Cancel audio level monitoring
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    
-    // Stop and remove all audio elements
-    audioElementsRef.current.forEach(audio => {
-      audio.pause();
-      audio.srcObject = null;
-      audio.remove();
-    });
-    audioElementsRef.current = [];
-    
-    // Close data channel
-    if (dcRef.current) {
-      dcRef.current.onmessage = null;
-      dcRef.current.onopen = null;
-      dcRef.current.onerror = null;
-      dcRef.current.close();
-      dcRef.current = null;
-    }
-    
-    // Close peer connection
-    if (pcRef.current) {
-      pcRef.current.ontrack = null;
-      pcRef.current.onicecandidate = null;
-      pcRef.current.oniceconnectionstatechange = null;
-      pcRef.current.onsignalingstatechange = null;
-      
-      // Stop all transceivers
-      pcRef.current.getTransceivers().forEach(transceiver => {
-        if (transceiver.stop) {
-          transceiver.stop();
-        }
-      });
-      
-      pcRef.current.close();
-      pcRef.current = null;
-    }
-    
-    // Stop microphone stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
-      streamRef.current = null;
-    }
-    
-    // Close audio context
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-    
-    isConnectingRef.current = false;
-    setConnectionStatus('disconnected');
-    setAudioLevel(0);
-    
-    console.log('Voice connection stopped');
-  }, []);
+  }, [monitorAudioLevel, stopConnection]);
 
   return {
     connectionStatus,
